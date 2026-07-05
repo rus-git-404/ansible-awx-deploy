@@ -1,0 +1,17 @@
+---
+- name: Gather facts from all hosts
+  hosts: all
+  gather_facts: yes
+  tasks: []
+
+- name: Deploy PostgreSQL
+  hosts: db
+  become: yes
+  roles:
+    - postgresql
+
+- name: Deploy Backend
+  hosts: app
+  become: yes
+  roles:
+    - backend

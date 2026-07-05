@@ -1,0 +1,19 @@
+[Unit]
+Description=Python Backend
+After=network.target
+
+[Service]
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_dir }}
+ExecStart=/usr/bin/env python3 {{ app_dir }}/app.py
+Restart=always
+RestartSec=5
+Environment="DB_HOST={{ db_host }}"
+Environment="DB_PORT={{ db_port }}"
+Environment="DB_USER={{ db_user }}"
+Environment="DB_NAME={{ db_name }}"
+Environment="DB_PASSWORD={{ db_password }}"
+
+[Install]
+WantedBy=multi-user.target

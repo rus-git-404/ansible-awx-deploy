@@ -1,0 +1,47 @@
+---
+- name: Install PostgreSQL
+  apt:
+    name: "postgresql-{{ postgresql_version }}"
+    state: present
+
+- name: Start and enable PostgreSQL
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Configure pg_hba.conf
+  template:
+    src: pg_hba.conf.j2
+    dest: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: 0640
+  notify: restart postgresql
+
+- name: Configure postgresql.conf (listen_addresses)
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^listen_addresses"
+    line: "listen_addresses = '{{ postgresql_listen_addresses }}'"
+  notify: restart postgresql
+
+- name: Create database app_db
+  become: yes
+  become_user: postgres
+  become_flags: '--login'
+  postgresql_db:
+    name: "{{ db_user }}"
+    state: present
+
+- name: Create user app_user
+  become: yes
+  become_user: postgres
+  become_flags: '--login'
+  postgresql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    db: postgres
+    state: present
+    role_attr_flags: LOGIN
+  no_log: true

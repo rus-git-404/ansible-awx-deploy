@@ -1,0 +1,11 @@
+app_user: makl
+app_group: makl
+app_dir: /opt/app
+app_log_dir: /var/log/app
+app_port: 8000
+db_name: app_db
+db_user: app_user
+db_port: 5432
+backend_repo: "https://github.com/your-org/your-backend.git"
+backend_branch: main
+db_password: "changeme123"

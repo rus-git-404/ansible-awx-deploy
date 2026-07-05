@@ -1,0 +1,5 @@
+postgresql_version: 16
+postgresql_listen_addresses: "*"
+postgresql_allowed_hosts:
+  - "{{ hostvars['vm1']['ansible_default_ipv4']['address'] }}"
+db_password: "changeme123"
