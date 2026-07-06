@@ -1,57 +1,59 @@
 ---
-- name: Install Python3, pip and Flask
-  apt:
-    name:
-      - python3
-      - python3-pip
-    state: present
+- name: Install Python3 and Flask
+  raw: |
+    sudo apt update -qq
+    sudo apt install -y python3 python3-pip python3-flask
   become: yes
+  changed_when: false
 
-- name: Install Flask via APT
-  apt:
-    name: python3-flask
-    state: present
+- name: Create directories
+  raw: |
+    sudo mkdir -p /opt/app /var/log/app
+    sudo chown -R makl:makl /opt/app /var/log/app
   become: yes
+  changed_when: false
 
-- name: Ensure app user exists
-  user:
-    name: "{{ app_user }}"
-    shell: /bin/bash
-    state: present
+- name: Write app.py
   become: yes
+  copy:
+    dest: /opt/app/app.py
+    owner: makl
+    group: makl
+    mode: '0644'
+    content: |
+      #!/usr/bin/env python3
+      from flask import Flask, jsonify
+      app = Flask(__name__)
 
-- name: Create application directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
-    mode: 0755
-  loop:
-    - "{{ app_dir }}"
-    - "{{ app_log_dir }}"
+      @app.route('/health')
+      def health():
+          return jsonify({"status": "ok"})
+
+      if __name__ == '__main__':
+          app.run(host='0.0.0.0', port=8000, debug=False)
+
+- name: Write systemd service
   become: yes
-
-- name: Copy app.py template
-  template:
-    src: app.py.j2
-    dest: "{{ app_dir }}/app.py"
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
-    mode: 0644
-  become: yes
-
-- name: Copy systemd service template
-  template:
-    src: app.service.j2
+  copy:
     dest: /etc/systemd/system/app.service
-  become: yes
-  notify: restart app
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Python Backend
+      [Service]
+      User=makl
+      WorkingDirectory=/opt/app
+      ExecStart=/usr/bin/python3 /opt/app/app.py
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
 
-- name: Enable and start app service
-  systemd:
-    name: app
-    enabled: yes
-    state: started
-    daemon_reload: yes
+- name: Enable and start app
+  raw: |
+    sudo systemctl daemon-reload
+    sudo systemctl enable app
+    sudo systemctl restart app
   become: yes
+  changed_when: false
