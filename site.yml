@@ -1,6 +1,6 @@
 ---
-- name: Gather facts from all hosts
-  hosts: all
+- name: Gather facts from db and awx
+  hosts: db:awx
   gather_facts: yes
   tasks: []
 
@@ -12,6 +12,7 @@
 
 - name: Deploy Backend
   hosts: app
+  gather_facts: no
   become: yes
   roles:
     - backend
