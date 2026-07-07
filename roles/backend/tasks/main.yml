@@ -1,5 +1,5 @@
 ---
-- name: Install Python3 and Flask via apt
+- name: Install Python3 and Flask
   raw: |
     sudo apt update -qq && sudo apt install -y python3 python3-pip python3-flask
   become: yes
@@ -13,33 +13,13 @@
 
 - name: Write app.py
   raw: |
-    sudo tee /opt/app/app.py > /dev/null <<'PYTHON_EOF'
-#!/usr/bin/env python3
-from flask import Flask, jsonify
-app = Flask(__name__)
-@app.route('/health')
-def health():
-    return jsonify({"status": "ok"})
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=False)
-PYTHON_EOF
-    sudo chown makl:makl /opt/app/app.py
+    echo "IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwpmcm9tIGZsYXNrIGltcG9ydCBGbGFzaywganNvbmlmeQphcHAgPSBGbGFzayhfX25hbWVfXykKCkBhcHAucm91dGUoJy9oZWFsdGgnKQpkZWYgaGVhbHRoKCk6CiAgICByZXR1cm4ganNvbmlmeSh7InN0YXR1cyI6ICJvayJ9KQoKaWYgX19uYW1lX18gPT0gJ19fbWFpbl9fJzoKICAgIGFwcC5ydW4oaG9zdD0nMC4wLjAuMCcsIHBvcnQ9ODAwMCwgZGVidWc9RmFsc2UpCg==" | base64 -d | sudo tee /opt/app/app.py > /dev/null
   become: yes
   changed_when: false
 
 - name: Write systemd service
   raw: |
-    sudo tee /etc/systemd/system/app.service > /dev/null <<'SERVICE_EOF'
-[Unit]
-Description=Python Backend
-[Service]
-User=makl
-WorkingDirectory=/opt/app
-ExecStart=/usr/bin/python3 /opt/app/app.py
-Restart=always
-[Install]
-WantedBy=multi-user.target
-SERVICE_EOF
+    echo "W1VuaXRdCkRlc2NyaXB0aW9uPVB5dGhvbiBCYWNrZW5kCltTZXJ2aWNlXQpVc2VyPW1ha2wKV29ya2luZ0RpcmVjdG9yeT0vb3B0L2FwcC8KRXhlY1N0YXJ0PS91c3IvYmluL3B5dGhvbjMgL29wdC9hcHAvYXBwLnB5ClJlc3RhcnQ9YWx3YXlzCkluc3RhbGw9V2FudGVkQnk9bXVsdGktdXNlci50YXJnZXQ=" | base64 -d | sudo tee /etc/systemd/system/app.service > /dev/null
   become: yes
   changed_when: false
 
