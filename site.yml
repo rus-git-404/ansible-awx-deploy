@@ -1,8 +1,7 @@
 ---
-- name: Gather facts from db and awx
-  hosts: db:awx
+- name: Gather facts from all hosts
+  hosts: all
   gather_facts: yes
-  tasks: []
 
 - name: Deploy PostgreSQL
   hosts: db
@@ -10,9 +9,9 @@
   roles:
     - postgresql
 
-- name: Deploy Backend
+- name: Deploy Docker and application
   hosts: app
-  gather_facts: no
   become: yes
   roles:
-    - backend
+    - docker
+    - app_docker

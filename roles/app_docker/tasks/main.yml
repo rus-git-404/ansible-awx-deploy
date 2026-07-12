@@ -1,0 +1,47 @@
+---
+- name: Установка git
+  apt:
+    name: git
+    state: present
+
+- name: Создание пользователя app (если ещё нет)
+  user:
+    name: app
+    home: /opt/conduit
+    state: present
+
+- name: Клонирование репозитория на vm1
+  git:
+    repo: "https://github.com/borys25ol/fastapi-realworld-backend.git"
+    dest: /opt/conduit
+    version: main
+    force: yes
+
+- name: Создание .env файла
+  copy:
+    dest: /opt/conduit/.env
+    content: |
+      POSTGRES_HOST={{ db_host }}
+      POSTGRES_DB=app_db
+      POSTGRES_USER=app_user
+      POSTGRES_PASSWORD={{ db_password }}
+      POSTGRES_PORT=5432
+    owner: app
+    group: app
+    mode: '0644'
+
+- name: Замена docker-compose.yml на версию без БД
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/conduit/docker-compose.yml
+    owner: app
+    group: app
+    mode: '0644'
+
+- name: Запуск контейнера через docker compose
+  docker_compose:
+    project_src: /opt/conduit
+    state: present
+    restarted: yes
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin"
