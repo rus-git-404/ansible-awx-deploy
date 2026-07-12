@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  api:
+    build: .
+    container_name: conduit-api
+    command: uvicorn conduit.app:app --host 0.0.0.0 --port 8080
+    environment:
+      POSTGRES_HOST: {{ db_host }}
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
