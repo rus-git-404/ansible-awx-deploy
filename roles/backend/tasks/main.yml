@@ -1,0 +1,52 @@
+---
+- name: Install Python dependencies
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3.12-venv
+      - python3.12-dev
+    state: present
+
+- name: Ensure app user exists
+  ansible.builtin.user:
+    name: app
+    state: present
+  become: yes
+
+- name: Create required directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: app
+    group: app
+    mode: '0755'
+  loop:
+    - /opt/app
+    - /var/log/app
+  become: yes
+
+- name: Create virtual environment
+  ansible.builtin.pip:
+    virtualenv: /opt/app/venv
+    virtualenv_command: python3.12 -m venv
+    name: flask
+  become: yes
+
+- name: Copy app.py template
+  ansible.builtin.template:
+    src: app.py.j2
+    dest: /opt/app/app.py
+    owner: app
+    group: app
+    mode: '0644'
+  notify: restart app
+
+- name: Copy app.service template
+  ansible.builtin.template:
+    src: app.service.j2
+    dest: /etc/systemd/system/app.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart app
+

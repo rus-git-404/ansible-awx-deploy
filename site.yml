@@ -9,9 +9,9 @@
   roles:
     - postgresql
 
-- name: Deploy Docker and application
+- name: Deploy Backend
   hosts: app
   become: yes
   roles:
-    - docker
-    - app_docker
+    - backend
+
