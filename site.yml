@@ -1,17 +1,16 @@
 ---
-- name: Gather facts from all hosts
-  hosts: all
-  gather_facts: yes
-
 - name: Deploy PostgreSQL
   hosts: db
+  gather_facts: no
   become: yes
   roles:
     - postgresql
 
 - name: Deploy Backend
   hosts: app
+  gather_facts: no
   become: yes
   roles:
     - backend
+
 

@@ -1,42 +1,41 @@
 ---
-- name: Install acl (if needed)
+- name: Install acl
   ansible.builtin.raw: sudo apt-get update && sudo apt-get install -y acl
   changed_when: false
 
 - name: Install PostgreSQL 16
-  ansible.builtin.raw: sudo apt-get install -y postgresql-16 python3-psycopg2
+  ansible.builtin.raw: sudo apt-get install -y postgresql-16
   changed_when: false
 
-- name: Start and enable PostgreSQL
-  ansible.builtin.systemd:
-    name: postgresql
-    state: started
-    enabled: yes
+- name: Start PostgreSQL
+  ansible.builtin.raw: sudo systemctl start postgresql && sudo systemctl enable postgresql
+  changed_when: false
 
 - name: Configure listen_addresses
-  ansible.builtin.lineinfile:
-    path: /etc/postgresql/16/main/postgresql.conf
-    regexp: '^#?listen_addresses'
-    line: "listen_addresses = '*'"
-  notify: restart postgresql
+  ansible.builtin.raw: |
+    sudo sed -i "s/^#listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/16/main/postgresql.conf
+    sudo systemctl restart postgresql
+  changed_when: false
 
-- name: Copy pg_hba.conf
-  ansible.builtin.template:
-    src: pg_hba.conf.j2
-    dest: /etc/postgresql/16/main/pg_hba.conf
-    owner: postgres
-    group: postgres
-    mode: '0640'
-  notify: restart postgresql
+- name: Configure pg_hba.conf
+  ansible.builtin.raw: |
+    sudo tee /etc/postgresql/16/main/pg_hba.conf << 'EOF'
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    local   all             all                                     trust
+    host    all             all             127.0.0.1/32            trust
+    host    all             all             10.10.10.0/24           md5
+    host    all             all             ::1/128                 trust
+    EOF
+    sudo systemctl restart postgresql
+  changed_when: false
 
 - name: Create database
-  ansible.builtin.shell: |
-    sudo -u postgres psql -c "CREATE DATABASE app_db;"
+  ansible.builtin.raw: sudo -u postgres psql -c "CREATE DATABASE app_db;"
   changed_when: false
   ignore_errors: yes
 
 - name: Create user
-  ansible.builtin.shell: |
+  ansible.builtin.raw: |
     sudo -u postgres psql -c "CREATE USER app_user WITH PASSWORD 'changeme123';"
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE app_db TO app_user;"
   changed_when: false
