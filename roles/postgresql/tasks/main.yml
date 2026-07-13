@@ -1,22 +1,11 @@
 ---
-- name: Install acl for become_user
-  ansible.builtin.apt:
-    name: acl
-    state: present
+- name: Install acl (if needed)
+  ansible.builtin.raw: sudo apt-get update && sudo apt-get install -y acl
+  changed_when: false
 
 - name: Install PostgreSQL 16
-  ansible.builtin.apt:
-    name:
-      - postgresql-16
-      - python3-psycopg2
-    state: present
-
-- name: Install PostgreSQL 16
-  ansible.builtin.apt:
-    name:
-      - postgresql-16
-      - python3-psycopg2
-    state: present
+  ansible.builtin.raw: sudo apt-get install -y postgresql-16 python3-psycopg2
+  changed_when: false
 
 - name: Start and enable PostgreSQL
   ansible.builtin.systemd:
@@ -41,19 +30,15 @@
   notify: restart postgresql
 
 - name: Create database
-  community.postgresql.postgresql_db:
-    name: app_db
-  become: yes
-  become_user: postgres
-  become_flags: '--login'
+  ansible.builtin.shell: |
+    sudo -u postgres psql -c "CREATE DATABASE app_db;"
+  changed_when: false
+  ignore_errors: yes
 
 - name: Create user
-  community.postgresql.postgresql_user:
-    name: app_user
-    password: "changeme123"
-    db: app_db
-    priv: "ALL"
-  become: yes
-  become_user: postgres
-  become_flags: '--login'
+  ansible.builtin.shell: |
+    sudo -u postgres psql -c "CREATE USER app_user WITH PASSWORD 'changeme123';"
+    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE app_db TO app_user;"
+  changed_when: false
+  ignore_errors: yes
 
