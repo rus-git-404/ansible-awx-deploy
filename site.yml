@@ -18,9 +18,9 @@
         state: started
         restart_policy: unless-stopped
         env:
-          POSTGRES_DB: "{{ db_name | default('app_db') }}"
-          POSTGRES_USER: "{{ db_user | default('app_user') }}"
-          POSTGRES_PASSWORD: "{{ db_password }}"
+          POSTGRES_DB: "app_db"
+          POSTGRES_USER: "app_user"
+          POSTGRES_PASSWORD: "changeme123"
         ports:
           - "5432:5432"
 
@@ -29,4 +29,4 @@
   gather_facts: no
   become: yes
   roles:
-    - app_docker
+    - backend
