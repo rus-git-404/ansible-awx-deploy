@@ -12,17 +12,15 @@
   become: yes
   tasks:
     - name: Run PostgreSQL container
-      docker_container:
-        name: postgres
-        image: postgres:16
-        state: started
-        restart_policy: unless-stopped
-        env:
-          POSTGRES_DB: "app_db"
-          POSTGRES_USER: "app_user"
-          POSTGRES_PASSWORD: "changeme123"
-        ports:
-          - "5432:5432"
+      shell: |
+        docker rm -f postgres 2>/dev/null; \
+        docker run -d --name postgres \
+          -e POSTGRES_DB=app_db \
+          -e POSTGRES_USER=app_user \
+          -e POSTGRES_PASSWORD=changeme123 \
+          -p 5432:5432 \
+          --restart unless-stopped \
+          postgres:16
 
 - name: Deploy Backend container on app
   hosts: app
