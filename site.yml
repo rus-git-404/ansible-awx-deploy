@@ -1,16 +1,32 @@
 ---
-- name: Deploy PostgreSQL
-  hosts: db
+- name: Install Docker on all hosts
+  hosts: all
   gather_facts: no
   become: yes
   roles:
-    - postgresql
+    - docker
 
-- name: Deploy Backend
+- name: Deploy PostgreSQL container on db
+  hosts: db
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Run PostgreSQL container
+      docker_container:
+        name: postgres
+        image: postgres:16
+        state: started
+        restart_policy: unless-stopped
+        env:
+          POSTGRES_DB: "{{ db_name | default('app_db') }}"
+          POSTGRES_USER: "{{ db_user | default('app_user') }}"
+          POSTGRES_PASSWORD: "{{ db_password }}"
+        ports:
+          - "5432:5432"
+
+- name: Deploy Backend container on app
   hosts: app
   gather_facts: no
   become: yes
   roles:
-    - backend
-
-
+    - app_docker
