@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Установить python3-six
+      apt:
+        name: python3-six
+        state: present
+        update_cache: yes
